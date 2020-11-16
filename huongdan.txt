@@ -1,0 +1,2 @@
+DownloadTools: tai du lieu web, convert .json to .atlas, convert .atlas to .plist. Use: open .sln. then go to class programs change data how to use.
+cropImgAtlas: crop img file .atlas. used: keo file .atlas to .exe => finish!

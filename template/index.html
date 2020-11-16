@@ -1,0 +1,81 @@
+﻿<html>
+<style>
+    body {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+    }
+</style>
+
+<head>
+    <meta charset="utf-8">
+    <script src="./js/cocos2d-js-min.js"></script>
+    <script src="./js/settings.js"></script>
+    <script>
+
+        var rootUrl = "https://b29.win/res/";
+
+        function printAll(settings) {
+            var assets = settings.rawAssets.assets;
+            var packedAssets = settings.packedAssets;
+            cc.log(assets)
+            var uuids = settings.uuids;
+            var imports = settings.md5AssetsMap.import;
+            var rawassets = settings.md5AssetsMap.rawassets;
+            console.log(rawassets[0] + typeof rawassets[0]);
+
+            var fileList = new Array(uuids.length);
+            for (var i = 0; i < uuids.length; i++) {
+                if (assets[i]) {
+                    fileList[i] = { idx: i, uuid: uuids[i], path: assets[i][0] };
+                } else {
+                    fileList[i] = { idx: i, uuid: uuids[i] };
+                }
+
+                fileList[i].url = cc.AssetLibrary.getLibUrlNoExt(fileList[i].uuid, !0).replace("assets/", "");
+            }
+
+            for (var i = 0; i < rawassets.length; i += 2) {
+                if (typeof rawassets[i] == "number") {
+                    fileList[rawassets[i]].ver = "." + rawassets[i + 1];
+                    if (fileList[rawassets[i]].path) {
+                        fileList[rawassets[i]].url = rootUrl + "raw-assets/" + fileList[rawassets[i]].url;
+                        fileList[rawassets[i]].url += fileList[rawassets[i]].ver + cc.path.extname(fileList[rawassets[i]].path);
+                    }
+                    else {
+                        fileList[rawassets[i]].url = rootUrl + "raw-assets/" + fileList[rawassets[i]].url;
+                        fileList[rawassets[i]].url += fileList[rawassets[i]].ver + ".png";
+                    }
+                }
+            }
+
+            for (var i = 0; i < imports.length; i += 2) {
+                if (typeof imports[i] == "number") {
+                    fileList[imports[i]].ver = "." + imports[i + 1];
+                    if (!fileList[imports[i]].url.startsWith("https")) {
+                        fileList[imports[i]].url = rootUrl + "import/" + fileList[imports[i]].url;
+                        fileList[imports[i]].url += fileList[imports[i]].ver + ".json";
+                    }
+                }
+                else {
+                    var temp = imports[i];
+                    if (temp.length > 16)
+                        temp = cc.AssetLibrary.getLibUrlNoExt(temp, !0).replace("assets/", "");
+                    else
+                        temp = temp.slice(0, 2) + "/" + temp
+                    var newFile = { idx: fileList.length, ver: "." + imports[i + 1], url: rootUrl + "import/" + temp };
+                    newFile.url += newFile.ver + ".json";
+                    fileList.push(newFile);
+                }
+            }
+
+            document.write(JSON.stringify(fileList));
+        }
+
+        printAll(window._CCSettings);
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
