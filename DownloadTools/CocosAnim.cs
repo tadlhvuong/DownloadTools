@@ -249,8 +249,10 @@ namespace DownloadTools
                                     foreach (JProperty uid in uidTemp)
                                     {
                                         var AudioName = uid.Name;
+                                        if (AudioName == "soundPhao") 
                                         if (!AudioName.Contains("Sound"))
-                                            continue;
+                                            if (!AudioName.Contains("sound"))
+                                                continue;
                                         foreach (var uid2 in uid)
                                         {
                                             if (uid2.Type == JTokenType.Object)
@@ -268,12 +270,30 @@ namespace DownloadTools
                                                         {
                                                             var outAudio = outDir + "Audio";
                                                             var urlAudio = Assets[fileUid];
+                                                            var renewUrl = urlAudio.ToString().Replace(".png", ".mp3");
+                                                            Directory.CreateDirectory($"{outAudio}\\{AudioName}");
+                                                            var file1 = Path.Combine($"{outAudio}\\{AudioName}\\{AudioName}.mp3");
                                                             if (urlAudio.ToString().StartsWith("https"))
                                                             {
-                                                                var renewUrl = urlAudio.ToString().Replace(".png", ".mp3");
-                                                                Directory.CreateDirectory($"{outAudio}\\{AudioName}");
-                                                                var file1 = Path.Combine($"{outAudio}\\{AudioName}\\{AudioName}.mp3");
                                                                 wc.DownloadFile(renewUrl, file1);
+                                                            }
+                                                            else
+                                                            {
+                                                                var urlString = renewUrl.ToString();
+                                                                var substring = urlString.Substring(0, 2);
+                                                                var subname = urlString.Substring(3);
+                                                                var dirUrl = inDir + substring;
+                                                                string[] files = System.IO.Directory.GetFiles(dirUrl, "*.mp3");
+                                                                foreach (var file in files)
+                                                                {
+                                                                    if (file.Contains(subname))
+                                                                    {
+                                                                        if (System.IO.File.Exists(file1))
+                                                                            System.IO.File.Delete(file1);
+
+                                                                        File.Copy(file, file1);
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                         catch (Exception e)
