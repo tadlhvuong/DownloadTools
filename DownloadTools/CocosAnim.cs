@@ -179,18 +179,144 @@ namespace DownloadTools
 
         }
 
-        public void ExtractFolder(string srcDir, string inDir, string outDir)
+        public void ExtractFolder(string srcDir, string inDir, string outDir, string idImage)
         {
+            if(idImage != null)
+            {
+                var textName = "UnKnowTest";
+                var outUnKnow = outDir + "UnKnowTest";
+                var textureName = "";
+                Directory.CreateDirectory($"{outUnKnow}");
+                var stringFolder = textName.Replace(".plist", "");
+                textureName = $"{outUnKnow}\\{textName}.png";
+
+                var url = Assets[idImage];
+                if (url.ToString().StartsWith("https"))
+                {
+                    wc.DownloadFile(Assets[idImage], textureName);
+                }
+                else
+                {
+                    var urlString = url.ToString();
+                    var substring = urlString.Substring(0, 2);
+                    var subname = urlString.Substring(3);
+                    var dirUrl = inDir + substring;
+                    string[] files = System.IO.Directory.GetFiles(dirUrl, "*.png");
+                    foreach (var file in files)
+                    {
+                        if (file.Contains(subname))
+                        {
+                            if (System.IO.File.Exists(textureName))
+                                System.IO.File.Delete(textureName);
+
+                            File.Copy(file, textureName);
+                        }
+                    }
+                }
+
+                var imgW = 0; var imgH = 0;
+                using (var img = Image.FromFile(textureName))
+                {
+                    imgH = img.Height;
+                    imgW = img.Width;
+                }
+                var sizeFile = imgW + "," + imgH;
+                var file1 = Path.Combine($"{outUnKnow}\\{textName}.plist");
+                var file2 = Path.Combine($"{outUnKnow}\\{textName}.atlas");
+
+                var headerFile = "<?xml version=\"1.0\" encoding=\"UTF - 8\"?>\n<!DOCTYPE plist PUBLIC \" -//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd \">\n" +
+                    "<plist version=\"1.0\">\n<dict>\n<key>metadata</key>\n<dict>\n<key>format</key>\n<integer>3</integer>\n<key>realTextureFileName</key>\n<string>" + stringFolder + ".png</string>\n" +
+                    "<key>size</key>\n<string>" + sizeFile + "</string>\n<key>textureFileName</key>\n<string>" + stringFolder + ".png</string>\n</dict>\n<key>frames</key>\n<dict>\n";
+                var bodyFile = "";
+                var footerFile = "\n</dict>\n</dict>\n</plist>";
+                var headAtlas = stringFolder + "\nsize: " + sizeFile + "\nfilter: Linear,Linear\nrepeat: none\n";
+                var bodyAtlas = "";
+
+
+                var allFiles1 = Directory.GetFiles(srcDir, "*.json");
+                var subDirs1 = Directory.GetDirectories(srcDir);
+                foreach (var item in subDirs1)
+                {
+
+                    allFiles1 = Directory.GetFiles(item, "*.json");
+                    foreach (var item1 in allFiles1)
+                    {
+                        Console.WriteLine($"Working on {item1}");
+
+                        var jsonText = File.ReadAllText(item1);
+
+                        var allItems = new JArray();
+                        if (jsonText.StartsWith("["))
+                            allItems = JArray.Parse(jsonText);
+                        else
+                        {
+                            var oneItem = JObject.Parse(jsonText);
+                            allItems.Add(oneItem);
+                        }
+
+                        List<CocosObjSpriteFrame> ListSpriteFrame = new List<CocosObjSpriteFrame>();
+                        foreach (var sprite in allItems)
+                        {
+                            if (sprite.Type == JTokenType.Object)
+                            {
+                                try
+                                {
+                                    var s = sprite.ToObject<CocosObjSpriteFrame>();
+                                    if (s.Type != null && s.Type.Equals("cc.SpriteFrame") && s.Content.texture == idImage)
+                                    {
+                                        ListSpriteFrame.Add(s);
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                    continue;
+                                }
+                            }
+                            foreach (var spr in ListSpriteFrame)
+                            {
+                                try
+                                {
+
+                                    var nameSprite = spr.Content.Name.ToString();
+                                    var rotated = spr.Content.Rotated == 0 ? false : true;
+                                    bodyFile += "<key>" + nameSprite + ".png</key>\n<dict>\n<key>aliases</key>\n<array/>\n<key>spriteOffset</key>\n" +
+                                        "<string>{" + spr.Content.Offset[0].ToString() + "," + spr.Content.Offset[1].ToString() + "}</string>\n<key>spriteSize</key>\n<string>{" + spr.Content.OriginalSize[0].ToString() + "," + spr.Content.OriginalSize[1].ToString() + "}</string>\n" +
+                                        "<key>spriteSourceSize</key>\n<string>{" + spr.Content.OriginalSize[0].ToString() + "," + spr.Content.OriginalSize[1].ToString() + "}</string>\n<key>textureRect</key>\n" +
+                                        "<string>{{" + spr.Content.Rect[0].ToString() + "," + spr.Content.Rect[1].ToString() + "},{" + spr.Content.Rect[2].ToString() + "," + spr.Content.Rect[3].ToString() + "}}</string>\n<key>textureRotated</key>\n<" + rotated + "/>\n</dict>\n";
+
+                                    bodyAtlas += nameSprite + "\n\trotate: " + rotated + "\n\txy: " + spr.Content.Rect[0].ToString() + "," + spr.Content.Rect[1].ToString() +
+                                        "\n\tsize: " + spr.Content.Rect[2].ToString() + "," + spr.Content.Rect[3].ToString() + "\n\torig: " +
+                                        spr.Content.OriginalSize[0].ToString() + "," + spr.Content.OriginalSize[1].ToString() +
+                                        "\n\toffset: " + spr.Content.Offset[0].ToString() + "," + spr.Content.Offset[1].ToString() + "\n\tindex: -1\n";
+
+                                }
+                                catch (Exception e)
+                                {
+                                    var err = e;
+
+                                }
+                            }
+                        }
+                    }
+                }
+                var stringPlist = headerFile + bodyFile + footerFile;
+                File.WriteAllText(file1, stringPlist);
+                //file atlas
+                var stringAtlas = headAtlas + bodyAtlas;
+                File.WriteAllText(file2, stringAtlas);
+                return;
+            }
             var allFiles = Directory.GetFiles(srcDir, "*.json");
             foreach (var item in allFiles)
-                ExtractFile(item, inDir, outDir);
+                ExtractFile(item, inDir, outDir, idImage);
 
             var subDirs = Directory.GetDirectories(srcDir);
             foreach (var item in subDirs)
-                ExtractFolder(item, inDir, outDir);
+                ExtractFolder(item, inDir, outDir, idImage);
         }
 
-        public void ExtractFile(string jsonFile, string inDir, string outDir)
+
+        public void ExtractFile(string jsonFile, string inDir, string outDir, string idImage)
         {
             Console.WriteLine($"Working on {jsonFile}");
 
@@ -204,7 +330,6 @@ namespace DownloadTools
                 var oneItem = JObject.Parse(jsonText);
                 allItems.Add(oneItem);
             }
-
 
             List<CocosObjSpriteFrame> ListSpriteFrame = new List<CocosObjSpriteFrame>();
             foreach (var sprite in allItems)
@@ -225,7 +350,6 @@ namespace DownloadTools
                     }
                 }
             }
-
             foreach (var xItem in allItems)
             {
                 CocosObjFont itemFont = new CocosObjFont();
@@ -630,6 +754,7 @@ namespace DownloadTools
             var count = 0;
             var fileUidSprite = "";
             List<string> fileUidOld = new List<string>();
+
             foreach (var spr in ListSpriteFrame)
             {
                 var checkUID = fileUidOld.Where(x => x == spr.Content.texture).FirstOrDefault();

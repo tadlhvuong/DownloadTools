@@ -35,14 +35,16 @@ namespace DownloadTools
 
             //get source cocos creaotr
 
-            //var dl = new Downloader(@"D:\project\imageb29\b29source", "https://b29.win/");
-            //dl.DoDownloadJson(@"D:\project\imageb29\b29source\1.json");
+            //var dl = new Downloader(@"D:\project\srcImg\boc_v1", "https://bocvip.club/");
+            //dl.DoDownloadJson(@"D:\project\srcImg\boc_v1\1.json");
 
             //get animation cocos creator
 
-            var x = new CocosAnim(@"D:\project\srcImg\b29-16-11-20\source\assets.json", @"D:\project\srcImg\b29-16-11-20\source\template.html", @"D:\project\srcImg\b29-16-11-20\source\template.fnt");
-            x.ExtractFolder(@"D:\project\srcImg\b29-16-11-20\res\import", @"D:\project\srcImg\b29-16-11-20\res\raw-assets\", @"D:\project\srcImg\b29-16-11-20\source\");
-            //x.ExtractFolder(@"D:\project\srcImg\b29total\res\test", @"D:\project\srcImg\b29total\source\test\");
+            var x = new CocosAnim(@"D:\project\srcImg\boc_v1\source\assets.json", @"D:\project\srcImg\boc_v1\source\template.html", @"D:\project\srcImg\boc_v1\source\template.fnt");
+            //x.ExtractFolder(@"D:\project\srcImg\boc_v1\res\import", @"D:\project\srcImg\boc_v1\res\raw-assets\", @"D:\project\srcImg\boc_v1\res\test\", null);
+             //x.ExtractFolder(@"D:\project\srcImg\boc_v1\res\test", @"D:\project\srcImg\boc_v1\res\raw-assets\", @"D:\project\srcImg\boc_v1\res\test\", null);   //test tung file json
+
+            x.ExtractFolder(@"D:\project\srcImg\boc_v1\res\import", @"D:\project\srcImg\boc_v1\res\raw-assets\", @"D:\project\srcImg\boc_v1\res\test\", "a8d8yV/+pLraBLW/eUEAHA");   //test tung id texture
 
         }
     }
